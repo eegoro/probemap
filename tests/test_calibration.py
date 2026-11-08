@@ -21,6 +21,27 @@ from test_track_model import make_track_project
 from test_neuropixels import sample_probe, FIXTURE
 
 
+@pytest.mark.parametrize('style',['windows','posix'])
+def test_staged_paths_relocate_without_changing_input_links(style):
+    from pathlib import PureWindowsPath,PurePosixPath
+    from probemap.registration.calibration import _relocate_staged_paths
+    path_type=PureWindowsPath if style=='windows' else PurePosixPath
+    stage=path_type('C:/temp/staged/results' if style=='windows' else '/tmp/staged/results')
+    folder=path_type('D:/study/outputs' if style=='windows' else '/data/study/outputs')
+    source=str(stage.parent/'brain.tif')
+    sibling=str(stage.parent/'results-other'/'registration.json')
+    checkpoint=stage/'registration.json'
+    record={'output_dir':str(stage),'ants_checkpoint':str(checkpoint),
+            'sources':[source,sibling],str(checkpoint):{'nested':str(stage/'transform.h5')}}
+    result=_relocate_staged_paths(record,stage,folder)
+    assert result['output_dir']==str(folder)
+    assert result['ants_checkpoint']==str(folder/'registration.json')
+    assert result['sources']==[source,sibling]
+    assert result[str(folder/'registration.json')]['nested']==str(folder/'transform.h5')
+    if style=='windows':
+        assert _relocate_staged_paths(checkpoint.as_posix(),stage,folder)==str(folder/'registration.json')
+
+
 def annotated_project(tmp_path,model='affine'):
     p=make_track_project(tmp_path)
     p.coarse=np.array([[.8,.13,-.05,9],[-.08,1.2,.16,-7],[.04,.1,.75,3],[0,0,0,1.]])

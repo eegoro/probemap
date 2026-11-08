@@ -27,6 +27,12 @@ Run the last command each time you want to open ProbeMap. To open a saved projec
 
 On Ubuntu, install `python3.12-venv` if creating the environment fails.
 Use a desktop session with a working graphics driver for 3D views.
+If Qt reports missing `libEGL.so.1` or OpenGL libraries on Ubuntu, run:
+
+```sh
+sudo apt-get update
+sudo apt-get install -y libegl1 libopengl0 libgl1
+```
 
 On macOS, you can also run `scripts/start_probemap_macos.command` after installation.
 For a local app shortcut, run `python3.12 scripts/build_macos_app.py`.

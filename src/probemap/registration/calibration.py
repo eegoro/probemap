@@ -20,6 +20,22 @@ from .track_model import plane_geometry
 from .volumes import read_volume, spacing_zyx
 
 
+def _relocate_staged_paths(value,stage,folder):
+    """Move generated-file links to their final folder on either platform."""
+    if isinstance(value,str):
+        try:
+            relative=type(stage)(value).relative_to(stage)
+        except ValueError:
+            return value
+        return str(folder/relative)
+    if isinstance(value,list):
+        return [_relocate_staged_paths(item,stage,folder) for item in value]
+    if isinstance(value,dict):
+        return {_relocate_staged_paths(key,stage,folder):_relocate_staged_paths(item,stage,folder)
+                for key,item in value.items()}
+    return value
+
+
 def _scale(old,new):
     result=np.eye(4)
     result[:3,:3]=np.diag(spacing_zyx(new)/spacing_zyx(old))
@@ -341,15 +357,10 @@ def prepare_calibration_update(project,reference_spacing,scan_spacing,project_fi
         updated.output_dir=folder
         # Rewrite ANTs checkpoint/config paths after staging. Image links keep
         # pointing to their original TIFFs; only generated-file locations move.
-        def unstage(value):
-            if isinstance(value,str) and (value==str(stage) or value.startswith(str(stage)+'/')):
-                return str(folder)+value[len(str(stage)):]
-            if isinstance(value,list): return [unstage(item) for item in value]
-            if isinstance(value,dict): return {unstage(key):unstage(item) for key,item in value.items()}
-            return value
         for path in stage.glob('*.json'):
             if path.name=='project.json': continue
-            path.write_text(json.dumps(unstage(json.loads(path.read_text(encoding='utf-8'))),indent=2)+'\n', encoding='utf-8')
+            record=_relocate_staged_paths(json.loads(path.read_text(encoding='utf-8')),stage,folder)
+            path.write_text(json.dumps(record,indent=2)+'\n', encoding='utf-8')
         (stage/'project.json').unlink(missing_ok=True)
         record=updated.as_record()
         record['relative_paths']=relative_path_links(record,project_file)

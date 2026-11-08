@@ -13,7 +13,8 @@ def test_visible_atomic_figure_names(tmp_path):
     if hasattr(os,'chflags') and hasattr(stat,'UF_HIDDEN'):
         os.chflags(temporary,temporary.stat().st_flags | stat.UF_HIDDEN)
     publish_figure(temporary,target)
-    if hasattr(stat,'UF_HIDDEN'): assert not target.stat().st_flags & stat.UF_HIDDEN
+    if hasattr(target.stat(),'st_flags') and hasattr(stat,'UF_HIDDEN'):
+        assert not target.stat().st_flags & stat.UF_HIDDEN
     assert target.read_bytes()==b'pdf' and not temporary.exists()
 
 
