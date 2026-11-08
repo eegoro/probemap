@@ -1,0 +1,29 @@
+name: Tests
+on: [push, pull_request]
+
+jobs:
+  tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
+      PYTHONUTF8: '1'
+      QT_API: pyqt6
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          architecture: x64
+      - run: python -m pip install ".[test,ants]" build
+      - name: Entry point smoke check
+        run: python -m probemap --version
+      - name: Core calculations, imports, paths and cross-platform IO
+        run: python -m pytest -m "not gui"
+      - name: Electrophysiology GUI with offscreen Qt
+        run: python -m pytest tests/test_ephys.py -m gui
+      - run: python -m build

@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "probemap"
+description = "Brain atlas alignment, probe reconstruction, and electrophysiology comparison"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+dynamic = ["version"]
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.26,<3",
+  "scipy>=1.12,<2",
+  "matplotlib>=3.8,<4",
+  "scikit-image>=0.23,<1",
+  "scikit-learn>=1.4,<2",
+  "pwlf>=2.5,<3",
+  "tifffile>=2024.1",
+  "PyQt6>=6.6,<7",
+  "qtpy>=2.4,<3",
+  "vispy>=0.15,<0.17",
+  "napari>=0.7.1,<0.8",
+]
+
+[project.optional-dependencies]
+ants = ["antspyx>=0.6.3,<0.7"]
+test = ["pytest>=8"]
+
+[project.gui-scripts]
+probemap = "probemap.__main__:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.dynamic]
+version = {attr = "probemap.__version__"}
+
+[tool.setuptools.package-data]
+probemap = ["resources/*.svg", "resources/*.icns"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = ["gui: requires a native display and OpenGL"]
