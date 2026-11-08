@@ -11,6 +11,7 @@ jobs:
     env:
       PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
       PYTHONUTF8: '1'
+      PYTHONFAULTHANDLER: '1'
       QT_API: pyqt6
       QT_QPA_PLATFORM: offscreen
     steps:
