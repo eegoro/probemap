@@ -373,7 +373,10 @@ def test_workspace_multi_import_anatomy_sorting_and_restore(tmp_path,monkeypatch
         assert page.activity.percent.text() == '10%'
         assert page.activity.timing.value == 10.25
         assert page.progress.minimum() == 0 and page.progress.maximum() == 100
-        page.activity.timing.started -= 65; page.activity.tick()
+        now = page.activity.timing.clock()
+        monkeypatch.setattr(page.activity.timing, 'clock', lambda: now)
+        page.activity.timing.started = now - 65
+        page.activity.tick()
         assert '01:05' in page.activity.elapsed_label.text()
         assert page.activity.remaining_label.text()
         page.grab().save(str(tmp_path/'probemap-ephys-progress.png'))
@@ -572,7 +575,8 @@ def test_whole_probe_colors_region_editor_hover_and_panel_width(tmp_path, monkey
         assert {patch.get_gid() for patch in region_paths}=={'region-1','region-2'}
         assert len(exported.axes[0].images)==1  # Only the scan is rasterized.
         import stat
-        if hasattr(stat,'UF_HIDDEN'): assert not pdf.stat().st_flags & stat.UF_HIDDEN
+        if hasattr(pdf.stat(),'st_flags') and hasattr(stat,'UF_HIDDEN'):
+            assert not pdf.stat().st_flags & stat.UF_HIDDEN
         table = page.region_editor.region_table
         row = next(r for r in range(table.rowCount()) if table.item(r,2).data(Qt.ItemDataRole.UserRole)==1)
         table.item(row,1).setCheckState(Qt.CheckState.Checked)
