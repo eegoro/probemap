@@ -6,8 +6,11 @@ import pytest
 
 
 @pytest.fixture(scope='session', autouse=True)
-def close_qt_after_tests():
+def close_qt_after_tests(request):
+    ran_gui=any(item.get_closest_marker('gui') for item in request.session.items)
     yield
+    if not ran_gui:
+        return
     # Core-only runs do not need to import or create a GUI application.
     widgets_module=sys.modules.get('qtpy.QtWidgets')
     if widgets_module is None:
